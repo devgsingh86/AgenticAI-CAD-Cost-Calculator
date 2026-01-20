@@ -7,7 +7,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCADStore } from '@/lib/stores/cad-processing-store';
 
-export function CADUploader() {
+interface CADUploaderProps {
+  onFileSelected?: (file: File) => void;
+}
+
+export function CADUploader({ onFileSelected }: CADUploaderProps) {
   const { file, setFile, setProcessingStage } = useCADStore();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -32,7 +36,12 @@ export function CADUploader() {
     
     setFile(uploadedFile);
     setProcessingStage('ready');
-  }, [setFile, setProcessingStage]);
+    
+    // Trigger auto-processing
+    if (onFileSelected) {
+      onFileSelected(uploadedFile);
+    }
+  }, [setFile, setProcessingStage, onFileSelected]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
