@@ -9,13 +9,20 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { FileText, Cpu, DollarSign, RefreshCw, Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
 
 export default function UploadPage() {
-  const { file, geometryMetrics, meshData, processingStage, error, reset } = useCADStore();
+  const { 
+    file, 
+    geometryMetrics, 
+    meshData, 
+    costEstimate, 
+    processingStage, 
+    error, 
+    reset 
+  } = useCADStore();
+  
   const { processFile, isProcessing, progress } = useCADProcessing();
 
-  // Auto-process when file is selected
   const handleFileSelected = async (selectedFile: File) => {
     console.log('🎯 File selected, auto-processing:', selectedFile.name);
     await processFile(selectedFile);
@@ -31,7 +38,7 @@ export default function UploadPage() {
             <p className="text-sm text-gray-600">AI-powered manufacturing cost analysis</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">MVP - Day 2 Complete</Badge>
+            <Badge variant="outline">Day 3 - Groq AI Integration</Badge>
             {geometryMetrics && (
               <button
                 onClick={reset}
@@ -74,6 +81,7 @@ export default function UploadPage() {
                       <p className="text-sm text-blue-700">
                         {processingStage === 'parsing' && 'Reading file structure...'}
                         {processingStage === 'extracting' && 'Extracting geometry...'}
+                        {processingStage === 'estimating' && 'Calculating costs with AI...'}
                         {processingStage === 'complete' && 'Complete!'}
                       </p>
                     </div>
@@ -162,40 +170,37 @@ export default function UploadPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="text-green-600">✅</span>
-                    <span>Auto-processing on file upload</span>
+                    <span>Groq AI cost estimation working</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-green-600">✅</span>
-                    <span>Real STL file parsing & display</span>
+                    <span>Real STL parsing & 3D display</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-green-600">✅</span>
-                    <span>Auto-scaled 3D viewer</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600">✅</span>
-                    <span>Geometry metrics extraction</span>
+                    <span>Auto-processing pipeline</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-blue-600">⏳</span>
-                    <span className="text-gray-600">Real STEP parsing (Day 3)</span>
+                    <span className="text-gray-600">STEP file parsing (Day 4)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">⏳</span>
-                    <span className="text-gray-400">AI cost estimation (Day 6-7)</span>
+                    <span className="text-gray-400">DfM recommendations (Day 8-9)</span>
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-xs text-gray-500">
-                    🎯 Demo: Feb 3, 2026 • Days remaining: 12
+                    🎯 Demo: Feb 3, 2026 • Days remaining: 13
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Column: 3D Viewer */}
+          {/* Right Column */}
           <div className="space-y-6">
+            {/* 3D Viewer */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -213,42 +218,96 @@ export default function UploadPage() {
               </CardContent>
             </Card>
 
-            {/* Cost Preview */}
-            <Card className="bg-gray-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-400">
-                  <DollarSign className="h-5 w-5" />
-                  3. Cost Estimate (Coming Day 6-7)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm text-gray-500">
-                  <div className="flex justify-between">
-                    <span>Material Cost:</span>
-                    <span>$--</span>
+            {/* Cost Estimate */}
+            {costEstimate ? (
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-900">
+                    <DollarSign className="h-5 w-5" />
+                    3. Cost Estimate
+                    <Badge variant="secondary" className="ml-auto">
+                      {costEstimate.complexity} Complexity
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Material ({costEstimate.material}):</span>
+                      <span className="font-mono font-semibold text-green-900">
+                        ${costEstimate.materialCost.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Machining Time:</span>
+                      <span className="font-mono font-semibold text-green-900">
+                        ${costEstimate.machiningCost.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Setup & Tooling:</span>
+                      <span className="font-mono font-semibold text-green-900">
+                        ${costEstimate.setupCost.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Surface Finish:</span>
+                      <span className="font-mono font-semibold text-green-900">
+                        ${costEstimate.finishingCost.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="pt-3 border-t border-green-300 flex justify-between font-semibold text-lg">
+                      <span className="text-green-900">Total Estimate:</span>
+                      <span className="text-green-900">${costEstimate.totalCost.toFixed(2)}</span>
+                    </div>
+                    <div className="text-center pt-2">
+                      <p className="text-xs text-green-700">
+                        ⏱️ Estimated Time: {costEstimate.estimatedTime}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        🤖 Powered by Groq AI (Llama 3.3 70B)
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Machining Time:</span>
-                    <span>$--</span>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-gray-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-gray-400">
+                    <DollarSign className="h-5 w-5" />
+                    3. Cost Estimate
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 text-sm text-gray-500">
+                    <div className="flex justify-between">
+                      <span>Material Cost:</span>
+                      <span>$--</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Machining Time:</span>
+                      <span>$--</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Setup & Tooling:</span>
+                      <span>$--</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Surface Finish:</span>
+                      <span>$--</span>
+                    </div>
+                    <div className="pt-3 border-t border-gray-300 flex justify-between font-semibold">
+                      <span>Total Estimate:</span>
+                      <span>$--</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Setup & Tooling:</span>
-                    <span>$--</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Surface Finish:</span>
-                    <span>$--</span>
-                  </div>
-                  <div className="pt-3 border-t border-gray-300 flex justify-between font-semibold">
-                    <span>Total Estimate:</span>
-                    <span>$--</span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400 mt-3 text-center">
-                  Will be calculated by AI agents
-                </p>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-gray-400 mt-3 text-center">
+                    Upload a file to get AI cost estimate
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
